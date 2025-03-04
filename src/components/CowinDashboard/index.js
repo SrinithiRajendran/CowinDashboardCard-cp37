@@ -1,9 +1,10 @@
 // Write your code here
 import {Component} from 'react'
 import Loader from 'react-loader-spinner'
+
 import VaccinationCoverage from '../VaccinationCoverage'
-import VaccinationByAge from '../VaccinationByAge'
 import VaccinationByGender from '../VaccinationByGender'
+import VaccinationByAge from '../VaccinationByAge'
 import './index.css'
 
 const apiStatusConstants = {
@@ -12,49 +13,57 @@ const apiStatusConstants = {
   failure: 'FAILURE',
   inProgress: 'IN_PROGRESS',
 }
+
 class CowinDashboard extends Component {
   state = {
-    vaccinationData: [],
+    vaccinationData: {},
     apiStatus: apiStatusConstants.initial,
   }
 
-  componentDidMount = () => {
-    this.getCowinData()
+  componentDidMount() {
+    this.getVaccinationData()
   }
 
-  getCowinData = async () => {
-    this.setState({apiStatus: apiStatusConstants.inProgress})
-    const url = 'https://apis.ccbp.in/covid-vaccination-data'
-    const response = await fetch(url)
+  getVaccinationData = async () => {
+    this.setState({
+      apiStatus: apiStatusConstants.inProgress,
+    })
+
+    const covidVaccinationDataApiUrl =
+      'https://apis.ccbp.in/covid-vaccination-data'
+
+    const response = await fetch(covidVaccinationDataApiUrl)
     if (response.ok === true) {
-      const data = await response.json()
+      const fetchedData = await response.json()
       const updatedData = {
-        last7DaysVaccination: data.last_7_days_vaccination.map(eachData => ({
-          vaccineDate: eachData.vaccine_date,
-          dose1: eachData.dose_1,
-          dose2: eachData.dose_2,
+        last7DaysVaccination: fetchedData.last_7_days_vaccination.map(
+          eachDayData => ({
+            vaccineDate: eachDayData.vaccine_date,
+            dose1: eachDayData.dose_1,
+            dose2: eachDayData.dose_2,
+          }),
+        ),
+        vaccinationByAge: fetchedData.vaccination_by_age.map(range => ({
+          age: range.age,
+          count: range.count,
         })),
-
-        vaccinationByAge: data.vaccination_by_age.map(eachCount => ({
-          age: eachCount.age,
-          count: eachCount.count,
-        })),
-
-        vaccinationByGender: data.vaccination_by_gender.map(eachGender => ({
-          count: eachGender.count,
-          gender: eachGender.gender,
-        })),
+        vaccinationByGender: fetchedData.vaccination_by_gender.map(
+          genderType => ({
+            gender: genderType.gender,
+            count: genderType.count,
+          }),
+        ),
       }
       this.setState({
-        apiStatus: apiStatusConstants.success,
         vaccinationData: updatedData,
+        apiStatus: apiStatusConstants.success,
       })
     } else {
       this.setState({apiStatus: apiStatusConstants.failure})
     }
   }
 
-  renderSuccessView = () => {
+  renderVaccinationStats = () => {
     const {vaccinationData} = this.state
 
     return (
@@ -83,21 +92,22 @@ class CowinDashboard extends Component {
     </div>
   )
 
-  renderLoaderView = () => (
+  renderLoadingView = () => (
     <div className="loading-view" data-testid="loader">
       <Loader color="#ffffff" height={80} type="ThreeDots" width={80} />
     </div>
   )
 
-  renderContent = () => {
+  renderViewsBasedOnAPIStatus = () => {
     const {apiStatus} = this.state
+
     switch (apiStatus) {
       case apiStatusConstants.success:
-        return this.renderSuccessView()
+        return this.renderVaccinationStats()
       case apiStatusConstants.failure:
         return this.renderFailureView()
       case apiStatusConstants.inProgress:
-        return this.renderLoaderView()
+        return this.renderLoadingView()
       default:
         return null
     }
@@ -106,7 +116,7 @@ class CowinDashboard extends Component {
   render() {
     return (
       <div className="app-container">
-        <div className="cowin-container">
+        <div className="cowin-dashboard-container">
           <div className="logo-container">
             <img
               className="logo"
@@ -116,7 +126,7 @@ class CowinDashboard extends Component {
             <h1 className="logo-heading">Co-WIN</h1>
           </div>
           <h1 className="heading">CoWIN Vaccination in India</h1>
-          {this.renderContent()}
+          {this.renderViewsBasedOnAPIStatus()}
         </div>
       </div>
     )

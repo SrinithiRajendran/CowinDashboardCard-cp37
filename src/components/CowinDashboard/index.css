@@ -4,14 +4,15 @@
   justify-content: center;
   background-color: #161625;
   min-height: 100vh;
+  width: 100%;
 }
 
 .cowin-dashboard-container {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  width: 80%;
-  max-width: 1110px;
+  width: 90%;
+  max-width: 100%;
 }
 
 .logo-container {
@@ -40,7 +41,7 @@
   font-family: 'Roboto';
   font-style: normal;
   font-weight: 500;
-  font-size: 30px;
+  font-size: 20px;
   line-height: 1.5;
 }
 
